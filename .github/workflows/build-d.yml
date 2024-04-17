@@ -24,7 +24,7 @@ jobs:
 
        - name: Initializing environment
          run: |
-             git clone https://github.com/SA-17/rm_pkg p && cd p && bash setup.sh
+             git clone https://github.com/SA-17/rm_pkg p && cd p && bash setup.sh && cd $out
              sudo bash docker_installer.sh
             
             
