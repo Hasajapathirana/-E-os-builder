@@ -24,9 +24,10 @@ jobs:
 
        - name: Initializing environment
          run: |
-             git clone https://github.com/SA-17/rm_pkg p && cd p && bash setup.sh && cd $out
+             ls
              sudo bash docker_installer.sh
-            
+             git clone https://github.com/SA-17/rm_pkg p && cd p && bash setup.sh 
+             
             
        - name: Sync recovery source and device tree
          run: |
