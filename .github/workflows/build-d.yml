@@ -1,0 +1,63 @@
+name: Building \e\ os using Docker
+
+on:
+#  release:
+#    types: [published]
+#  push:
+#    branches:
+#      - master
+#    paths:
+#      - '.config'
+#  schedule:
+#    - cron: 0 8 * * 5
+#  tested on android 8.1
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+       - name: Checkout
+         uses: actions/checkout@master
+         
+
+       - name: Initializing environment
+         run: |
+             git clone https://github.com/SA-17/rm_pkg p && cd p && bash setup.sh
+             sudo curl --create-dirs -L -o /usr/local/bin/repo -O -L https://storage.googleapis.com/git-repo-downloads/repo
+             sudo chmod a+rx /usr/local/bin/repo
+            
+            
+       - name: Sync recovery source and device tree
+         run: |
+              mkdir work
+              cd work
+              repo init -u https://gitlab.e.foundation/e/os/android.git -b v1-nougat --depth=1
+              repo sync -j4
+              git clone https://github.com/LineageOS/android_packages_apps_SamsungServiceMode.git -b cm-14.1 --depth=1 --single-branch packages/apps/SamsungServiceMode
+              git clone https://github.com/pstglia/android_device_samsung_sprd-common.git -b cm-14.1 --depth=1 --single-branch device/samsung/sprd-common
+              git clone https://github.com/pstglia/android_device_samsung_scx30g-common.git -b T113NU_COM_A_MAO_NO_BOLSO --depth=1 --single-branch device/samsung/scx30g-common
+              git clone https://github.com/pstglia/android_device_samsung_scx35-common.git -b T113NU_COM_A_MAO_NO_BOLSO --depth=1 --single-branch device/samsung/scx35-common
+              git clone https://github.com/Hasajapathirana/android_device_samsung_core33g.git -b T113NU_COM_A_MAO_NO_BOLSO --depth=1 --single-branch device/samsung/core33g
+              git clone https://github.com/pstglia/android_hardware_sprd.git -b cm-14.1 --depth=1 --single-branch hardware/sprd
+              git clone https://github.com/LineageOS/android_hardware_samsung.git -b cm-14.1 --depth=1 --single-branch hardware/samsung
+              git clone https://github.com/pstglia/linux.git -b T113NU_COM_A_MAO_NO_BOLSO --depth=1 --single-branch kernel/samsung/core33g
+              git clone https://github.com/pstglia/android_vendor_samsung_core33g.git -b T113NU_COM_A_MAO_NO_BOLSO --depth=1 --single-branch vendor/samsung/core33g
+              git clone https://github.com/pstglia/android_vendor_samsung_scx30g-common.git -b T113NU_COM_A_MAO_NO_BOLSO --depth=1 --single-branch vendor/samsung/scx30g-common
+
+       - name: Build
+         run: |
+              cd work
+              source build/envsetup.sh && breakfast core33g
+              export ANDROID_JACK_VM_ARGS="-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx4G"
+              croot
+              brunch core33g
+              ls
+              
+       - name: Save
+         uses: actions/upload-artifact@v2
+         with:
+            name: system.zip
+            path: /home/runner/work/Recovery_builder/Recovery_builder/work/out/
+            retention-days: 31
